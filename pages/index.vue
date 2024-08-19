@@ -1,5 +1,5 @@
 <template>
-  <div class="shadow-2xl flex flex-col gap-5 border-2 py-5 rounded-lg md:px-52">
+  <div class="flex flex-col justify-center gap-5 px-3 py-5 text-2xl border-2 rounded-lg shadow-2xl md:px-52">
 
     <h1 class="font-Zeyada text-[50px] text-center">NightCore Studio</h1>
 
@@ -12,26 +12,29 @@
       <telegramIcon />
     </NuxtLink>
 
-    <button class="btn btn-secondary" @click="play">
-      Play NightCore
-      <playIcon />
-    </button>
+    <div class="flex flex-col items-center flex-1 gap-1 md:flex-row">
+      <button class="w-full text-lg md:basis-1/2 btn btn-secondary" @click="play">
+        Play NightCore
+      </button>
 
-    <button class="btn btn-info" @click="reset">
+      <button class="w-full text-lg btn md:basis-1/2 btn-error" @click="stop">
+        Stop
+      </button>
+    </div>
+
+
+    <input @change.prevent="changeFile" type="file" accept="audio/*" class="w-full file-input file-input-bordered " />
+
+
+    <button class="w-full text-xl btn btn-warning" @click="reset">
       Reset
-
     </button>
-
-
-    <input @change.prevent="changeFile" type="file" accept="audio/*"
-      class="file-input file-input-bordered w-full max-w-xs" />
-
     <label for="tempoSlider">Tempo: {{ tempo }}</label>
     <!-- min="0.5" max="2.0" step="0.01" -->
-    <input @input="updateTempo" type="range" min="0.5" max="2.0" step="0.01" v-model="tempo" class="range" />
+    <input @input="updateTempo" type="range" min="0.9" max="1.4" step="0.01" v-model="tempo" class="range" />
     <label for="pitchSlider">Pitch: {{ pitch }}</label>
     <!-- min="-1200" max="1200" step="1" -->
-    <input @input="updatePitch" type="range" min="-500" max="500" step="1" v-model="pitch" class="range" />
+    <input @input="updatePitch" type="range" min="0" max="150" step="1" v-model="pitch" class="range" />
 
 
   </div>
@@ -97,6 +100,13 @@ function play() {
 
   sourceNode.connect(gainNode).connect(audioContext.destination);
   sourceNode.start();
+
+}
+
+function stop() {
+  if (sourceNode) {
+    sourceNode.stop();
+  }
 }
 
 function updateTempo() {
