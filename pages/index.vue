@@ -7,7 +7,7 @@
       <NuxtImg src="/anime_girl.gif" height="150" />
     </div>
 
-    <NuxtLink target="_blank" to="https://t.me/nightcore_is_my_life" class="btn btn-accent" @click="play">
+    <NuxtLink target="_blank" to="https://t.me/nightcore_is_my_life" class="btn btn-accent">
       Telegram Channel
       <telegramIcon />
     </NuxtLink>
