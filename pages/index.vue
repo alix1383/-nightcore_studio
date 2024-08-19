@@ -41,7 +41,7 @@
 </template>
 
 <script lang="ts" setup>
-import playIcon from "@/components/icons/play.vue";
+// import playIcon from "@/components/icons/play.vue";
 import telegramIcon from "@/components/icons/telegram.vue";
 const tempo = ref(1);
 const pitch = ref(0);
