@@ -4,7 +4,7 @@
     <h1 class="font-Zeyada text-[50px] text-center">NightCore Studio</h1>
 
     <div class="flex items-center justify-center">
-      <NuxtImg src="/anime_girl.gif" class="max-h-[150px]" />
+      <NuxtImg src="/anime_girl.gif" height="150" class="max-h-[150px]" />
     </div>
 
     <NuxtLink target="_blank" to="https://t.me/nightcore_is_my_life" class="btn btn-accent">
