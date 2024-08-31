@@ -22,60 +22,68 @@
       </button>
     </div>
 
-
-    <input @change.prevent="changeFile" type="file" accept="audio/*" class="w-full file-input file-input-bordered " />
-
+    <input @change.prevent="changeFile" type="file" accept="audio/*" class="w-full file-input file-input-bordered" />
 
     <button class="w-full text-xl btn btn-warning" @click="reset">
       Reset
     </button>
+
     <label for="tempoSlider">Tempo: {{ tempo }}</label>
-    <!-- min="0.5" max="2.0" step="0.01" -->
     <input @input="updateTempo" type="range" min="0.9" max="1.4" step="0.01" v-model="tempo" class="range" />
+
     <label for="pitchSlider">Pitch: {{ pitch }}</label>
-    <!-- min="-1200" max="1200" step="1" -->
     <input @input="updatePitch" type="range" min="0" max="150" step="1" v-model="pitch" class="range" />
 
+    <!-- Button to download modified audio -->
+    <button class="w-full text-xl btn btn-success" @click="downloadModifiedAudio">
+      Download NightCore
+    </button>
 
   </div>
 </template>
 
 <script lang="ts" setup>
-// import playIcon from "@/components/icons/play.vue";
+// Importing the telegram icon
 import telegramIcon from "@/components/icons/telegram.vue";
-const tempo = ref(1);
-const pitch = ref(0);
+import { ref } from 'vue';
 
-function reset() {
-  tempo.value = 1
-  pitch.value = 0
+// Reactive state for tempo and pitch values
+const tempo = ref<number>(1);
+const pitch = ref<number>(0);
+
+let audioContext: AudioContext;
+let audioBuffer: AudioBuffer | null = null;
+let sourceNode: AudioBufferSourceNode | null = null;
+
+// Function to reset tempo and pitch values
+function reset(): void {
+  tempo.value = 1;
+  pitch.value = 0;
 }
 
-const audioContext = new window.AudioContext;
-let audioBuffer: AudioBuffer, sourceNode: any;
+// Initialize AudioContext
+audioContext = new window.AudioContext();
 
+// Handle file upload and decode audio data
+function changeFile(event: Event): void {
+  const file = (event.target as HTMLInputElement).files;
 
-function changeFile(event: Event) {
-  const file = (event.target as HTMLInputElement).files
-
-  if (file == null) {
-    return
-  }
+  if (!file || file.length === 0) return;
 
   const reader = new FileReader();
   reader.readAsArrayBuffer(file[0]);
 
-
-
-  reader.onloadend = function () {
-    audioContext.decodeAudioData((reader.result as ArrayBuffer), function (buffer) {
-      audioBuffer = buffer;
-    });
+  reader.onloadend = function (): void {
+    if (reader.result) {
+      audioContext.decodeAudioData(reader.result as ArrayBuffer, function (buffer: AudioBuffer) {
+        audioBuffer = buffer;
+      });
+    }
   };
-
 }
 
-function play() {
+// Play audio with applied tempo and pitch adjustments
+function play(): void {
   if (!audioBuffer) return;
 
   if (sourceNode) {
@@ -85,38 +93,119 @@ function play() {
   sourceNode = audioContext.createBufferSource();
   sourceNode.buffer = audioBuffer;
 
-  const tempoSlider = document.getElementById('tempoSlider');
-  const pitchSlider = document.getElementById('pitchSlider');
-
-  // Set playbackRate for tempo control
+  // Set playback rate for tempo control
   sourceNode.playbackRate.value = tempo.value;
 
-  // Connect the source to a gain node for pitch shifting
-  const gainNode = audioContext.createGain();
-  gainNode.gain.value = 1; // Default gain
-
-  // Apply detune for pitch control
+  // Apply pitch shift using detune
   sourceNode.detune.value = pitch.value;
 
-  sourceNode.connect(gainNode).connect(audioContext.destination);
+  // Connect the source to the audio output
+  sourceNode.connect(audioContext.destination);
   sourceNode.start();
-
 }
 
-function stop() {
+// Stop the audio playback
+function stop(): void {
   if (sourceNode) {
     sourceNode.stop();
+    sourceNode = null;
   }
 }
 
-function updateTempo() {
+// Update the tempo in real-time during playback
+function updateTempo(): void {
   if (sourceNode) {
     sourceNode.playbackRate.value = tempo.value;
   }
 }
-function updatePitch() {
+
+// Update the pitch in real-time during playback
+function updatePitch(): void {
   if (sourceNode) {
     sourceNode.detune.value = pitch.value;
   }
+}
+
+// Download the modified audio with the current tempo and pitch settings
+async function downloadModifiedAudio(): Promise<void> {
+  if (!audioBuffer) return;
+
+  // Create an offline audio context for rendering
+  const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
+
+  // Create a buffer source for offline processing
+  const offlineSource = offlineContext.createBufferSource();
+  offlineSource.buffer = audioBuffer;
+
+  // Apply tempo and pitch settings
+  offlineSource.playbackRate.value = tempo.value;
+  offlineSource.detune.value = pitch.value;
+
+  // Connect the source to the destination (offline rendering)
+  offlineSource.connect(offlineContext.destination);
+  offlineSource.start();
+
+  // Render the modified audio
+  const renderedBuffer = await offlineContext.startRendering();
+
+  // Convert the buffer to a Blob for downloading
+  const audioBlob = bufferToWave(renderedBuffer);
+
+  // Create a download link
+  const downloadUrl = URL.createObjectURL(audioBlob);
+  const a = document.createElement('a');
+  a.href = downloadUrl;
+  a.download = 'modified_audio.wav';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// Helper function to convert AudioBuffer to Blob (WAV format)
+function bufferToWave(buffer: AudioBuffer): Blob {
+  const numberOfChannels = buffer.numberOfChannels;
+  const length = buffer.length * numberOfChannels * 2 + 44;
+  const result = new ArrayBuffer(length);
+  const view = new DataView(result);
+  const channels = [];
+  let offset = 0;
+  let pos = 0;
+
+  // Write WAV file header
+  function writeString(view: DataView, offset: number, string: string): void {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  }
+
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 32 + length, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numberOfChannels, true);
+  view.setUint32(24, buffer.sampleRate, true);
+  view.setUint32(28, buffer.sampleRate * 2 * numberOfChannels, true);
+  view.setUint16(32, numberOfChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, length, true);
+
+  pos = 44;
+  for (let i = 0; i < buffer.numberOfChannels; i++) {
+    channels.push(buffer.getChannelData(i));
+  }
+
+  while (pos < length) {
+    for (let i = 0; i < numberOfChannels; i++) {
+      const sample = Math.max(-1, Math.min(1, channels[i][offset]));
+      view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+      pos += 2;
+    }
+    offset++;
+  }
+
+  return new Blob([result], { type: 'audio/wav' });
 }
 </script>
