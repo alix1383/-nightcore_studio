@@ -1,31 +1,33 @@
 <template>
   <div class="flex flex-col justify-center gap-5 px-3 py-5 text-2xl border-2 rounded-lg shadow-2xl md:px-52">
 
-    <h1 class="font-Zeyada text-[50px] text-center">NightCore Studio</h1>
+    <h1 class="font-Zeyada text-[50px] text-center">{{ $t('nc_studio') }}</h1>
 
-    <div class="flex items-center justify-center">
-      <NuxtImg src="/anime_girl.gif" height="150" class="max-h-[150px]" />
-    </div>
 
     <NuxtLink target="_blank" to="https://t.me/nightcore_is_my_life" class="btn btn-accent">
-      Telegram Channel
+      {{ $t('tg_channel') }}
       <telegramIcon />
+    </NuxtLink>
+
+    <NuxtLink target="_blank" to="https://github.com/alix1383/nightcore_studio" class="btn  bg-success-content">
+      {{ $t('src_link') }}
+      <githubIcon />
     </NuxtLink>
 
     <div class="flex flex-col items-center flex-1 gap-1 md:flex-row">
       <button class="w-full text-lg md:basis-1/2 btn btn-secondary" @click="play">
-        Play NightCore
+        {{ $t('play') }}
       </button>
 
       <button class="w-full text-lg btn md:basis-1/2 btn-error" @click="stop">
-        Stop
+        {{ $t('stop') }}
       </button>
     </div>
 
     <input @change.prevent="changeFile" type="file" accept="audio/*" class="w-full file-input file-input-bordered" />
 
     <button class="w-full text-xl btn btn-warning" @click="reset">
-      Reset
+      {{ $t('reset') }}
     </button>
 
     <label for="tempoSlider">Tempo: {{ tempo }}</label>
@@ -36,7 +38,7 @@
 
     <!-- Button to download modified audio -->
     <button class="w-full text-xl btn btn-success" @click="downloadModifiedAudio">
-      Download NightCore
+      {{ $t('download') }}
     </button>
 
   </div>
@@ -44,6 +46,7 @@
 
 <script lang="ts" setup>
 // Importing the telegram icon
+import githubIcon from "@/components/icons/github.vue";
 import telegramIcon from "@/components/icons/telegram.vue";
 import { ref } from 'vue';
 

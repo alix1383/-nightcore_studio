@@ -1,3 +1,9 @@
 {
-    "hello": "Hello from external module"
+    "nc_studio": "NightCore Studio",
+    "tg_channel": "Telegram Channel",
+    "src_link": "Source Code",
+    "play": "Play",
+    "stop": "Play",
+    "reset": "Reset",
+    "download": "Download NightCore"
 }
