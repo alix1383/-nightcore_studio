@@ -3,7 +3,6 @@
 
     <h1 class="font-Zeyada text-[50px] text-center">{{ $t('nc_studio') }}</h1>
 
-
     <NuxtLink target="_blank" to="https://t.me/nightcore_is_my_life" class="btn btn-accent">
       {{ $t('tg_channel') }}
       <telegramIcon />
@@ -45,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-// Importing the telegram icon
+// Importing the github and telegram icon
 import githubIcon from "@/components/icons/github.vue";
 import telegramIcon from "@/components/icons/telegram.vue";
 import { ref } from 'vue';
